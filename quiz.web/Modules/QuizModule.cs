@@ -7,6 +7,7 @@ using Nancy.ModelBinding;
 using Nancy.Responses;
 using Nancy.Session;
 using Raven.Client;
+using quiz.web.Helpers;
 using quiz.web.Models;
 
 using System.Collections.Generic;
@@ -25,7 +26,7 @@ namespace quiz.web.Modules
             Post["/api/add"] = _ =>
                 {
                     if (Request.Cookies.ContainsKey("quizvote"))
-                        return Response.AsRedirect("/highscore", RedirectResponse.RedirectType.Permanent);
+                        return Response.AsRedirect("/quiz/allreadyvoted", RedirectResponse.RedirectType.Permanent);
                     
                     var questionList = documentSession.Load<QuestionList>("QuestionLists/QuestionList");
 
@@ -50,7 +51,7 @@ namespace quiz.web.Modules
                     documentSession.SaveChanges();
 
                     return
-                        Response.AsRedirect("/highscore", RedirectResponse.RedirectType.Permanent)
+                        Response.AsRedirect("/quiz/thankyou", RedirectResponse.RedirectType.Permanent)
                                 .AddCookie("quizvote", "true", DateTime.UtcNow.AddDays(365));
                 };
 
@@ -69,6 +70,13 @@ namespace quiz.web.Modules
                     return Response.AsJson(response);
                 };
 
+            Get["/api/highscore"] = _ =>
+            {
+                var highscoreModel = GetHighScoreModel();
+
+                return Response.AsJson(highscoreModel);
+            };
+
             Get["/quiz"] = _ =>
             {
                 base.Page.Title = "Quiz";
@@ -83,10 +91,41 @@ namespace quiz.web.Modules
                 {
                     base.Page.Title = "Highscore";
 
-                    var submissions = documentSession.Query<Submission>().OrderByDescending(x => x.Score).ToList();
+                    var highscoreModel = GetHighScoreModel();
 
-                    return View["highscore", submissions];
+                    return View["highscore", highscoreModel];
                 };
+
+            Get["/quiz/thankyou"] = _ =>
+                {
+                    base.Page.Title = "Thank you!";
+
+                    return View["thankyou"];
+                };
+
+            Get["/quiz/allreadyvoted"] = _ =>
+            {
+                base.Page.Title = "Thank you!";
+
+                return View["allreadyvoted"];
+            };
         } 
+
+        private HighScoreModel GetHighScoreModel()
+        {
+            var submissions = documentSession.Query<Submission>().OrderByDescending(x => x.Score).ToList();
+
+            var highscoreRankings = submissions.RankByDescending(x => x.Score,
+                                                                 (x, r) =>
+                                                                 new HighScoreRank()
+                                                                 {
+                                                                     Rank = r,
+                                                                     Name = x.Name,
+                                                                     Score = x.Score
+                                                                 });
+
+
+            return new HighScoreModel() { HighScoreRankings = highscoreRankings };
+        }
     }
 }

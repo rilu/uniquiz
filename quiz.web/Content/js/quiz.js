@@ -1,3 +1,0 @@
-﻿var listQuestions = function() {
-    
-}

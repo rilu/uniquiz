@@ -4,14 +4,17 @@
 }
 
 <form role="form" action="/api/add" method="POST">
-    <div class="form-group">
-        <label for="Name">Name</label>
-        <input type="text" class="form-control" name="Name" id="Name" placeholder="Enter your full name" required data-validation-required-message="Name Required!">
+    <div class="well">
+        <div class="form-group">
+            <label for="Name">Name</label>
+            <input type="text" class="form-control" name="Name" id="Name" placeholder="Enter your full name" required data-validation-required-message="Name Required!">
+        </div>
     </div>
     
     @{ var index = 1; }
     @foreach (var q in Model.Questions)
     {
+        <div class="well">
         <div class="form-group">
             <h3>@index. @q.QuestionTitle</h3>
             @{ var subindex = 0; }
@@ -19,14 +22,15 @@
             {
                 <div class="radio">
                     <label for="@index$@subindex">
-                        <input type="radio" name="Answers_@index" id="@index$@subindex" value="@subindex" required data-validation-required-message="Answer Required!">@o
+                        <input type="radio" name="Answers_@index" id="@index$@subindex" value="@subindex" required data-validation-required-message="Answer Required!" class="input-lg">@o
                     </label>
                 </div>
                 subindex++;
             }
         </div>
+        </div>    
         index++;
     }
 
-  <button type="submit" class="btn btn-default">Submit</button>
+  <button type="submit" class="btn btn-success">Submit</button>
 </form>
